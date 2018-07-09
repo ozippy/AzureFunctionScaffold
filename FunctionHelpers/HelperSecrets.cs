@@ -6,7 +6,7 @@ using Microsoft.Azure.Services.AppAuthentication;
 
 namespace FunctionHelpers
 {
-    class HelperSecrets
+    public static class HelperSecrets
     {
         /// <summary>
         /// Get a simple string secret value from the specified Azure Key Vault
