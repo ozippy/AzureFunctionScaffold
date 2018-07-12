@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -7,23 +6,28 @@ using System.Threading.Tasks;
 using FunctionHelpers;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.WebJobs.Host;
-using Newtonsoft.Json;
-using Microsoft.WindowsAzure;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
+using Newtonsoft.Json;
 
-namespace NavFunctions
+namespace Functions
 {
     public static class WebHooks
     {
+        /// <summary>
+        /// Once we have registered the web hook, this can act as the endpoint to call.
+        /// </summary>
+        /// <param name="req"></param>
+        /// <param name="logger"></param>
+        /// <returns></returns>
         [FunctionName("TestWebHookFunction")]
         public static async Task<object> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
             HttpRequestMessage req,
-            TraceWriter log)
+            ILogger logger)
         {
-            log.Info($"Webhook was triggered!");
+            logger.LogInformation($"Webhook was triggered!");
 
             // Grab the validationToken URL parameter
             string validationToken = req.GetQueryNameValuePairs()
@@ -35,25 +39,25 @@ namespace NavFunctions
             // web hook is being added
             if (validationToken != null)
             {
-                log.Info($"Validation token {validationToken} received");
+                logger.LogInformation($"Validation token {validationToken} received");
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 response.Content = new StringContent(validationToken);
                 return response;
             }
 
-            log.Info($"SharePoint triggered our webhook...great :-)");
+            logger.LogInformation($"SharePoint triggered our webhook");
             var content = await req.Content.ReadAsStringAsync();
-            log.Info($"Received following payload: {content}");
+            logger.LogInformation($"Received following payload: {content}");
 
             var notifications = JsonConvert.DeserializeObject<ResponseModel<NotificationModel>>(content).Value;
-            log.Info($"Found {notifications.Count} notifications");
+            logger.LogInformation($"Found {notifications.Count} notifications");
 
             var storageConnection =
                 FunctionHelpers.HelperSecrets.GetSecretString(Environment.GetEnvironmentVariable("storageConnection"),Environment.GetEnvironmentVariable("KEYVAULT")).Result;
 
             if (notifications.Count > 0)
             {
-                log.Info($"Processing notifications...");
+                logger.LogInformation($"Processing notifications...");
                 foreach (var notification in notifications)
                 {
                     CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConnection);
@@ -63,10 +67,10 @@ namespace NavFunctions
                     queue.CreateIfNotExists();
 
                     // add message to the queue
-                    string message = JsonConvert.SerializeObject(notification);
-                    log.Info($"Before adding a message to the queue. Message content: {message}");
+                    var message = JsonConvert.SerializeObject(notification);
+                    logger.LogInformation($"Before adding a message to the queue. Message content: {message}");
                     queue.AddMessage(new CloudQueueMessage(message));
-                    log.Info($"Message added :-)");
+                    logger.LogInformation($"Message added");
                 }
             }
 

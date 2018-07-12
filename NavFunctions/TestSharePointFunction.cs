@@ -20,6 +20,13 @@ namespace Functions
 
         private static TelemetryClient telemetryClient = new TelemetryClient() { InstrumentationKey = key };
 
+        /// <summary>
+        /// Simple function that authenticates with a certificate and then executes some CSOM code to get a web name.
+        /// </summary>
+        /// <param name="req"></param>
+        /// <param name="context"></param>
+        /// <param name="logger"></param>
+        /// <returns></returns>
         [FunctionName("TestSharePointFunction")]
         public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req, ExecutionContext context, ILogger logger)
         {
@@ -27,9 +34,12 @@ namespace Functions
 
             var siteId = Environment.GetEnvironmentVariable("sharePointSite");
             var tenant = Environment.GetEnvironmentVariable("ida:Tenant");
-            var clientId = Environment.GetEnvironmentVariable("secretCertClientIdKey");
+            
             var keyVaultUrl = Environment.GetEnvironmentVariable("KEYVAULT");
+            
+            //We are going to get these from the Key Vault
             var certName = Environment.GetEnvironmentVariable("secretCertName");
+            var clientId = Environment.GetEnvironmentVariable("secretCertClientIdKey");
 
             //Some examples of logging to AppInsights
             logger.LogInformation("101 Azure Function Demo - Logging with ITraceWriter");
@@ -39,12 +49,12 @@ namespace Functions
             logger.LogCritical("This is a critical log message => {message}", "We have a big problem");
 
 
-            // Track an Event
+            // Track an Event in AppInsights
             var evt = new EventTelemetry("Function called");
             UpdateTelemetryContext(evt.Context, context, "CertificateAppOnly");
             telemetryClient.TrackEvent(evt);
 
-
+            //Get a client context
             var clientContext = HelperSharePoint.GetClientContext(tenant, siteId, clientId, keyVaultUrl, certName);
 
             Web ccWeb = clientContext.Web;
