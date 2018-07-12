@@ -18,20 +18,20 @@ namespace Functions
             log.Info("C# HTTP trigger function processed a request.");
 
 
-            var siteId = Environment.GetEnvironmentVariable("NavSite");
+            var siteId = Environment.GetEnvironmentVariable("sharePointSite");
             var listId = Environment.GetEnvironmentVariable("NavNodesListId");
             var tenant = Environment.GetEnvironmentVariable("ida:Tenant");
             var clientId = Environment.GetEnvironmentVariable("secretCertClientIdKey");
             var keyVaultUrl = Environment.GetEnvironmentVariable("KEYVAULT");
             var certName = Environment.GetEnvironmentVariable("secretCertName");
-            string webHookEndPoint="https://navfunctionappozippy.azurewebsites.net/api/TestWebHookFunction?code=ZJAx3rX1ryXifutlp1dn2KvkF8ajamEjAjNz7YjdvnExoWFO18OtJA==";
+            string webHookEndPoint=Environment.GetEnvironmentVariable("webHookEndPoint");
             
             var authenticationResult = HelperSharePoint.GetAuthenticationResult(tenant, siteId, clientId, keyVaultUrl, certName);
 
             var result = await HelperWebHooks.AddListWebHookAsync(siteId, listId, webHookEndPoint, authenticationResult.AccessToken, 3);
-            //var result = "test";
+
             return result == null
-                 ? req.CreateResponse(HttpStatusCode.BadRequest, "Please pass a name on the query string or in the request body")
+                 ? req.CreateResponse(HttpStatusCode.BadRequest, "Couldn't register the web hook")
                  : req.CreateResponse(HttpStatusCode.OK, result);
         }
     }

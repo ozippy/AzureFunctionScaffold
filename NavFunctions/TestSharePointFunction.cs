@@ -1,19 +1,16 @@
 using System;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
 using FunctionHelpers;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 using Microsoft.SharePoint.Client;
 
-namespace NavFunctions
+namespace Functions
 {
     public static class TestSharePointFunction
     {
@@ -28,13 +25,13 @@ namespace NavFunctions
         {
             logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            var siteId = Environment.GetEnvironmentVariable("NavSite");
-            var listId = Environment.GetEnvironmentVariable("NavNodesListId");
+            var siteId = Environment.GetEnvironmentVariable("sharePointSite");
             var tenant = Environment.GetEnvironmentVariable("ida:Tenant");
             var clientId = Environment.GetEnvironmentVariable("secretCertClientIdKey");
             var keyVaultUrl = Environment.GetEnvironmentVariable("KEYVAULT");
             var certName = Environment.GetEnvironmentVariable("secretCertName");
 
+            //Some examples of logging to AppInsights
             logger.LogInformation("101 Azure Function Demo - Logging with ITraceWriter");
             logger.LogTrace("Here is a verbose log message");
             logger.LogWarning("Here is a warning log message");
@@ -59,8 +56,8 @@ namespace NavFunctions
             logger.LogMetric("TestMetric", 1234); 
 
             return clientContext == null
-                ? req.CreateResponse(HttpStatusCode.BadRequest, "Please pass a name on the query string or in the request body")
-                : req.CreateResponse(HttpStatusCode.OK, "Hello " + clientContext.Web.Title);
+                ? req.CreateResponse(HttpStatusCode.BadRequest, "We couldn't get the title of the site")
+                : req.CreateResponse(HttpStatusCode.OK, "The title of the web is " + clientContext.Web.Title);
         }
 
         
