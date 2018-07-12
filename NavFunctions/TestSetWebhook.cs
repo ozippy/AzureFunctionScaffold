@@ -36,7 +36,7 @@ namespace Functions
             var certName = Environment.GetEnvironmentVariable("secretCertName");
             
             //Authenticate with SharePoint using the certificate
-            var authenticationResult = HelperSharePoint.GetAuthenticationResult(tenant, siteId, clientId, keyVaultUrl, certName);
+            var authenticationResult = HelperSharePoint.GetAuthenticationResult(tenant, siteId, clientId, keyVaultUrl, certName, logger);
 
             var result = await HelperWebHooks.AddListWebHookAsync(siteId, listId, webHookEndPoint, authenticationResult.AccessToken, 3);
 

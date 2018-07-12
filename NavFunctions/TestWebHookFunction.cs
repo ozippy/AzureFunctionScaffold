@@ -53,7 +53,7 @@ namespace Functions
             logger.LogInformation($"Found {notifications.Count} notifications");
 
             var storageConnection =
-                FunctionHelpers.HelperSecrets.GetSecretString(Environment.GetEnvironmentVariable("storageConnection"),Environment.GetEnvironmentVariable("KEYVAULT")).Result;
+                FunctionHelpers.HelperSecrets.GetSecretString(Environment.GetEnvironmentVariable("storageConnection"), Environment.GetEnvironmentVariable("KEYVAULT"), logger).Result;
 
             if (notifications.Count > 0)
             {

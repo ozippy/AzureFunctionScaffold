@@ -2,24 +2,36 @@
 using System.Globalization;
 using System.Threading;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using Microsoft.Extensions.Logging;
 
 namespace FunctionHelpers
 {
     public static class HelperGraph
     {
-        public static AuthenticationResult GetAppOnlyToken(string clientIdKey, string appKeyKey, string tenant, string aadInstance, string keyVaultUrl)
+        /// <summary>
+        /// Get an apponly token to be able to access the graph
+        /// </summary>
+        /// <param name="clientIdKey"></param>
+        /// <param name="appKeyKey"></param>
+        /// <param name="tenant"></param>
+        /// <param name="aadInstance"></param>
+        /// <param name="keyVaultUrl"></param>
+        /// <returns></returns>
+        public static AuthenticationResult GetAppOnlyToken(string clientIdKey, string appKeyKey, string tenant, string aadInstance, string keyVaultUrl, ILogger logger)
         {
+            logger.LogInformation("calling GetAppOnlyToken");
 
-            var clientId = HelperSecrets.GetSecretString(clientIdKey, keyVaultUrl).Result;
-            var appKey = HelperSecrets.GetSecretString(appKeyKey, keyVaultUrl).Result;
-            
+            //Get these from Key Vault
+            var clientId = HelperSecrets.GetSecretString(clientIdKey, keyVaultUrl, logger).Result;
+            var appKey = HelperSecrets.GetSecretString(appKeyKey, keyVaultUrl, logger).Result;
+
             var authority = String.Format(CultureInfo.InvariantCulture, aadInstance ?? throw new InvalidOperationException("aadInstance is not specified"), tenant);
 
             var authContext = new AuthenticationContext(authority);
 
             AuthenticationResult result = null;
-            int retryCount = 0;
-            bool retry = false;
+            var retryCount = 0;
+            var retry = false;
             do
             {
                 retry = false;
@@ -41,7 +53,7 @@ namespace FunctionHelpers
             } while ((retry == true) && (retryCount < 3));
 
 
-            //log.Info(result == null ? "Cancelling attempt..." : "authenticated successfully.. ");
+            logger.LogInformation(result == null ? "Cancelling attempt..." : "authenticated successfully.. ");
 
             return result;
         }

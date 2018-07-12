@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
 namespace FunctionHelpers
 {
@@ -15,7 +15,7 @@ namespace FunctionHelpers
         /// <param name="secretKey"></param>
         /// <param name="keyVaultUrl"></param>
         /// <returns></returns>
-        public static async Task<string> GetSecretString(string secretKey, string keyVaultUrl)
+        public static async Task<string> GetSecretString(string secretKey, string keyVaultUrl, ILogger logger)
         {
  
             var azureServiceTokenProvider = new AzureServiceTokenProvider();
@@ -34,7 +34,7 @@ namespace FunctionHelpers
             }
             catch (Exception ex)
             {
-                //log Error
+                logger.LogError($"error getting certificate from Key Vault - {ex.Message}");
                 throw;
             }
 
@@ -50,7 +50,7 @@ namespace FunctionHelpers
         /// <param name="certName"></param>
         /// <returns></returns>
         public static async Task<X509Certificate2> GetCertificate(string keyVaultUrl,
-            string certName)
+            string certName, ILogger logger)
         {
             var azureServiceTokenProvider = new AzureServiceTokenProvider();
 
@@ -70,7 +70,7 @@ namespace FunctionHelpers
             }
             catch (Exception ex)
             {
-                //log error
+                logger.LogError("error getting certificate from Key Vault - {Exception}", ex.Message);
                 throw;
             }
 

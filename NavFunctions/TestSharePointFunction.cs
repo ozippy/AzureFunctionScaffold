@@ -14,7 +14,7 @@ namespace Functions
 {
     public static class TestSharePointFunction
     {
-        private static string key = TelemetryConfiguration.Active.InstrumentationKey = 
+        private static string key = TelemetryConfiguration.Active.InstrumentationKey =
             System.Environment.GetEnvironmentVariable(
                 "APPINSIGHTS_INSTRUMENTATIONKEY", EnvironmentVariableTarget.Process);
 
@@ -34,9 +34,9 @@ namespace Functions
 
             var siteId = Environment.GetEnvironmentVariable("sharePointSite");
             var tenant = Environment.GetEnvironmentVariable("ida:Tenant");
-            
+
             var keyVaultUrl = Environment.GetEnvironmentVariable("KEYVAULT");
-            
+
             //We are going to get these from the Key Vault
             var certName = Environment.GetEnvironmentVariable("secretCertName");
             var clientId = Environment.GetEnvironmentVariable("secretCertClientIdKey");
@@ -55,22 +55,22 @@ namespace Functions
             telemetryClient.TrackEvent(evt);
 
             //Get a client context
-            var clientContext = HelperSharePoint.GetClientContext(tenant, siteId, clientId, keyVaultUrl, certName);
+            var clientContext = HelperSharePoint.GetClientContext(tenant, siteId, clientId, keyVaultUrl, certName, logger);
 
             Web ccWeb = clientContext.Web;
-  
+
             clientContext.Load(ccWeb);
             clientContext.ExecuteQuery();
 
             logger.LogInformation("web title is " + ccWeb.Title);
-            logger.LogMetric("TestMetric", 1234); 
+            logger.LogMetric("TestMetric", 1234);
 
             return clientContext == null
                 ? req.CreateResponse(HttpStatusCode.BadRequest, "We couldn't get the title of the site")
                 : req.CreateResponse(HttpStatusCode.OK, "The title of the web is " + clientContext.Web.Title);
         }
 
-        
+
         // This correllates all telemetry with the current Function invocation
         private static void UpdateTelemetryContext(TelemetryContext context, ExecutionContext functionContext, string userName)
         {

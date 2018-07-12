@@ -32,16 +32,16 @@ namespace Functions
             //These two get retrieved from the key vault
             var clientIdKey = Environment.GetEnvironmentVariable("secretClientIdKey");
             var appKeyKey = Environment.GetEnvironmentVariable("secretAppKeyKey");
-            
+
             //Get the access token
-            var token = HelperGraph.GetAppOnlyToken(clientIdKey, appKeyKey, tenant, aadInstance, keyVaultUrl);
+            var token = HelperGraph.GetAppOnlyToken(clientIdKey, appKeyKey, tenant, aadInstance, keyVaultUrl, logger);
 
             //Make a call to the graph to retrieve some data
-            var result = await GetDriveContents(token,logger);
+            var result = await GetDriveContents(token, logger);
 
-        return result == null
-                ? req.CreateResponse(HttpStatusCode.BadRequest, "Couldn't retrieve data from the Microsoft Graph")
-                : req.CreateResponse(HttpStatusCode.OK, result.ToString());
+            return result == null
+                    ? req.CreateResponse(HttpStatusCode.BadRequest, "Couldn't retrieve data from the Microsoft Graph")
+                    : req.CreateResponse(HttpStatusCode.OK, result.ToString());
         }
 
 
@@ -63,10 +63,10 @@ namespace Functions
                     }));
 
 
-            var driveId=Environment.GetEnvironmentVariable("sharePointDriveId");
+            var driveId = Environment.GetEnvironmentVariable("sharePointDriveId");
 
             IDriveItemChildrenCollectionPage driveItems = await graphserviceClient.Drives[driveId].Root.Children.Request().GetAsync();
-            
+
             if (response.IsSuccessStatusCode)
             {
                 string r = await response.Content.ReadAsStringAsync();
